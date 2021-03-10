@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                // "${workspaceFolder}/install/vio/include/**",
+                "${workspaceFolder}/src/vio/include/**",
+                "/opt/ros/eloquent/include/**",
+                "/usr/include/**",
+                "/usr/local/include/**",
+                "/usr/local/include/gtsam/3rdparty/Eigen"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c99",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,41 @@
+// See https://aka.ms/vscode-remote/devcontainer.json for format details.
+{
+	"dockerFile": "Dockerfile",
+	"build": {
+		"args": {
+			"WORKSPACE": "${containerWorkspaceFolder}"
+		}
+	},
+	"remoteUser": "ros",
+	"runArgs": [
+		"--volume=/tmp/.X11-unix:/tmp/.X11-unix"
+	],
+	"containerEnv": { 
+		"DISPLAY": "${localEnv:DISPLAY}",
+		"LEFT_IMAGE_TOPIC": "left_cam/Image",
+		"RIGHT_IMAGE_TOPIC": "left_cam/Image",
+		"LEFT_CAMERA_INFO_TOPIC": "left_cam/CameraInfo",
+		"RIGHT_CAMERA_INFO_TOPIC": "left_cam/CameraInfo",
+		"IMU_TOPIC": "Imu",
+		"BASE_LINK_FRAME_ID": "0",
+        "LEFT_CAM_FRAME_ID": "1",
+        "RIGHT_CAM_FRAME_ID": "2",
+	},
+	"settings": {
+		"terminal.integrated.shell.linux": "/bin/bash"
+	},
+	"extensions": [
+		"dotjoshjohnson.xml",
+		"laurenttreguier.uncrustify",
+		"ms-azuretools.vscode-docker",
+		"ms-iot.vscode-ros",
+		"ms-python.python",
+		"ms-vscode.cpptools",
+		"ms-vscode.cmake-tools",
+		"redhat.vscode-yaml",
+		"smilerobotics.urdf",
+		"streetsidesoftware.code-spell-checker",
+		"twxs.cmake",
+		"yzhang.markdown-all-in-one"
+	]
+}
