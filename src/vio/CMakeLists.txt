@@ -15,6 +15,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(gflags_DIR "/usr/lib/x86_64-linux-gnu/cmake/gflags")
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -22,8 +24,13 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(message_filters REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(gflags REQUIRED)
+find_library(glog HINTS "/usr/lib/x86_64-linux-gnu")
+
 
 find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
 find_package(kimera_vio REQUIRED)
 find_package(Eigen3 REQUIRED)
 
@@ -39,14 +46,22 @@ find_package(
     timer 
     chrono
 )
+if(NOT TARGET Boost::boost)
+  add_library(Boost::boost INTERFACE IMPORTED)
+  set_target_properties(Boost::boost PROPERTIES
+  INTERFACE_LINK_LIBRARIES "${Boost_LIBRARIES}"
+  INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIRS}")
+endif()
 
 # build executable
 add_executable(${PROJECT_NAME}_node 
   include/vio.h
-  include/RosUtils.h
-  src/vio_node.cpp
   src/vio.cpp
+  include/RosUtils.h
   src/RosUtils.cpp
+  include/RosDataProvider.h
+  src/RosDataProvider.cpp
+  src/vio_node.cpp
 )
 
 ament_target_dependencies(
@@ -57,19 +72,24 @@ ament_target_dependencies(
     geometry_msgs
     kimera_vio
     OpenCV
+    cv_bridge
+    tf2_ros
     Eigen3
     message_filters
 )
 
-target_link_libraries(
-  ${PROJECT_NAME}_node 
-    gtsam
+target_link_libraries(${PROJECT_NAME}_node 
+  gtsam
+  gflags
+  glog
 )
 
 target_include_directories(
   ${PROJECT_NAME}_node
     PRIVATE 
       /usr/local/include/gtsam/3rdparty/Eigen
+      /usr/include/glog
+      /usr/local/include/kimera-vio
     PUBLIC
       include/
 )

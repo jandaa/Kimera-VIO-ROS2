@@ -21,12 +21,12 @@ void msgTFtoPose(const geometry_msgs::msg::Transform& tf, gtsam::Pose3* pose);
 
 void poseToMsgTF(const gtsam::Pose3& pose, geometry_msgs::msg::Transform* tf);
 
-void msgCamInfoToCameraParams(
-    const sensor_msgs::msg::CameraInfo::ConstSharedPtr& cam_info,
-    const std::string& base_link_frame_id,
-    const std::string& cam_frame_id,
-    CameraParams* cam_params
-);
+// void msgCamInfoToCameraParams(
+//     const sensor_msgs::msg::CameraInfo::ConstSharedPtr& cam_info,
+//     const std::string& base_link_frame_id,
+//     const std::string& cam_frame_id,
+//     CameraParams* cam_params
+// );
 
 void msgGtOdomToVioNavState(
     const nav_msgs::msg::Odometry& gt_odom,

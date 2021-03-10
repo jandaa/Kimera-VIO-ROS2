@@ -3,11 +3,25 @@
 <package format="3">
   <name>vio</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>
+  A ROS2 implementation of Kimera-vio designed to run in a docker container
+  </description>
   <maintainer email="andrej.janda@gmail.com">ros</maintainer>
-  <license>TODO: License declaration</license>
+  <license>BSD 2-Clause License</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>message_filters</depend>
+  <depend>cv_bridge</depend>
+  <depend>tf2_ros</depend>
+  <depend>kimera_vio</depend>
+  <depend>Eigen3</depend>
+
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
