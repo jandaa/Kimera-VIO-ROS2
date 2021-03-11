@@ -45,11 +45,11 @@ public:
         const sensor_msgs::msg::Image::ConstSharedPtr right_msg
     );
 
-    // void publish_static_transforms(
-    //     const gtsam::Pose3& pose,
-    //     const std::string& parent_frame_id,
-    //     const std::string& child_frame_id
-    // );
+    void publish_static_transforms(
+        const gtsam::Pose3& pose,
+        const std::string& parent_frame_id,
+        const std::string& child_frame_id
+    );
 
     void reinit_callback();
 

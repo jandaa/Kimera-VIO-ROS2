@@ -19,7 +19,7 @@ Node("KimeraVIO")
     // Initalize data parameters
     std::string params_folder_path;
     // this->vio_params = std::make_shared<VIO::VioParams>(params_folder_path);
-    // this->data_provider = std::make_shared<VIO::RosDataProvider>(this, this->vio_params);
+    // this->data_provider = std::make_unique<VIO::RosDataProvider>(this, this->vio_params);
 
     // Create subscriptions (Takes topics from system environment variables)
     this->left_image_sub.subscribe(this, std::getenv("LEFT_IMAGE_TOPIC"));

@@ -122,19 +122,7 @@ void RosDataProvider::reinit_pose_callaback(const geometry_msgs::msg::PoseStampe
     this->reinit_packet.setReinitPose(gtsam::Pose3(rotation, position));
 }
 
-// void RosDataProvider::publish_static_transforms(
-//     const gtsam::Pose3& pose,
-//     const std::string& parent_frame_id,
-//     const std::string& child_frame_id
-// ) {
-//     static tf2_ros::StaticTransformBroadcaster static_broadcaster(this);
-//     geometry_msgs::msg::TransformStamped static_transform_stamped;
-//     static_transform_stamped.header.stamp = this->nh->now();
-//     static_transform_stamped.header.frame_id = parent_frame_id;
-//     static_transform_stamped.child_frame_id = child_frame_id;
-//     utils::poseToMsgTF(pose, &static_transform_stamped.transform);
-//     static_broadcaster.sendTransform(static_transform_stamped);
-// }
+
 
 const cv::Mat RosDataProvider::readRosImage(
     const sensor_msgs::msg::Image::ConstSharedPtr& img_msg
@@ -170,4 +158,18 @@ const cv::Mat RosDataProvider::readRosImage(
     }
 }
 
+void RosDataProvider::publish_static_transforms(
+    const gtsam::Pose3& pose,
+    const std::string& parent_frame_id,
+    const std::string& child_frame_id
+) {
+    static tf2_ros::StaticTransformBroadcaster static_broadcaster(this->nh);
+    geometry_msgs::msg::TransformStamped static_transform_stamped;
+    static_transform_stamped.header.stamp = this->nh->now();
+    static_transform_stamped.header.frame_id = parent_frame_id;
+    static_transform_stamped.child_frame_id = child_frame_id;
+    VIO::utils::poseToMsgTF(pose, &static_transform_stamped.transform);
+    static_broadcaster.sendTransform(static_transform_stamped);
 }
+
+} // namespace VIO
