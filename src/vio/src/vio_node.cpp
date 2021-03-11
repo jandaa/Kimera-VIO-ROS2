@@ -2,7 +2,7 @@
 #include <glog/logging.h>
 
 // Nodes to be run in executable
-#include "vio.h"
+#include "vio/vio.h"
 
 int main(int argc, char * argv[]){
 

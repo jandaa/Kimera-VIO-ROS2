@@ -2,8 +2,8 @@
 #include <kimera-vio/pipeline/Pipeline.h>
 #include <kimera-vio/frontend/CameraParams.h>
 
-#include "RosDataProvider.h"
-#include "RosUtils.h"
+#include "vio/RosDataProvider.h"
+#include "vio/RosUtils.h"
 
 namespace VIO {
 

@@ -3,8 +3,8 @@
         {
             "name": "Linux",
             "includePath": [
-                // "${workspaceFolder}/install/vio/include/**",
-                "${workspaceFolder}/src/vio/include/**",
+                // "${workspaceFolder}/src/vio/include/**",
+                "${workspaceFolder}/install/include/**",
                 "/opt/ros/eloquent/include/**",
                 "/usr/include/**",
                 "/usr/local/include/**",

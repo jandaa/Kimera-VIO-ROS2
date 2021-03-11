@@ -7,8 +7,8 @@
 #include <kimera-vio/pipeline/Pipeline-definitions.h>
 #include <kimera-vio/pipeline/Pipeline.h>
 
-#include "vio.h"
-#include "RosUtils.h"
+#include "vio/vio.h"
+#include "vio/RosUtils.h"
 
 // Constant Parameters
 static const rclcpp::Duration kMaxTimeSecsForCamInfo(10.0);
@@ -26,11 +26,11 @@ Node("KimeraVIO")
     this->right_image_sub.subscribe(this, std::getenv("RIGHT_IMAGE_TOPIC"));
     this->left_camera_info_sub.subscribe(this, std::getenv("LEFT_CAMERA_INFO_TOPIC"));
     this->right_camera_info_sub.subscribe(this, std::getenv("RIGHT_CAMERA_INFO_TOPIC"));
-    // imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
-    //     std::getenv("IMU"),
-    //     10,
-    //     std::bind(&VIO::RosDataProvider::imu_callback, this->data_provider, std::placeholders::_1)
-    // );
+    imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
+        std::getenv("IMU"),
+        10,
+        std::bind(&VIO::RosDataProvider::imu_callback, this->data_provider, std::placeholders::_1)
+    );
     // reint_flag_sub = this->create_subscription<std_msgs::msg::Bool>(
     //     "reinit_flag",
     //     10,
@@ -145,19 +145,18 @@ void KimeraVIO::camera_info_callback(
     const sensor_msgs::msg::CameraInfo::ConstSharedPtr left_msg,
     const sensor_msgs::msg::CameraInfo::ConstSharedPtr right_msg
 ){
-    // // Initialize CameraParams for pipeline.
-    // VIO::utils::msgCamInfoToCameraParams(
-    //     left_msg,
-    //     this->base_link_frame_id,
-    //     this->left_cam_frame_id,
-    //     &this->vio_params->camera_params_.at(0)
-    // );
-    // VIO::utils::msgCamInfoToCameraParams(
-    //     right_msg,
-    //     this->base_link_frame_id,
-    //     this->right_cam_frame_id,
-    //     &this->vio_params->camera_params_.at(1)
-    // );
+    VIO::utils::msgCamInfoToCameraParams(
+        left_msg,
+        this->base_link_frame_id,
+        this->left_cam_frame_id,
+        &this->vio_params->camera_params_.at(0)
+    );
+    VIO::utils::msgCamInfoToCameraParams(
+        right_msg,
+        this->base_link_frame_id,
+        this->right_cam_frame_id,
+        &this->vio_params->camera_params_.at(1)
+    );
 
     this->vio_params->camera_params_.at(0).print();
     this->vio_params->camera_params_.at(1).print();

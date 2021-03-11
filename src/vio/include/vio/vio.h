@@ -27,7 +27,7 @@
 #include <kimera-vio/dataprovider/DataProviderInterface.h>
 
 // OpenCV
-#include <cv_bridge/cv_bridge.h>
+#include "cv_bridge/cv_bridge.h"
 
 #include "RosDataProvider.h"
 
