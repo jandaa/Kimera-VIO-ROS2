@@ -30,7 +30,7 @@ public:
     // KIMERA_DELETE_COPY_CONSTRUCTORS(RosDataProvider);
     KIMERA_POINTER_TYPEDEFS(RosDataProvider);
 
-    RosDataProvider();
+    RosDataProvider(rclcpp::Node* nh, VioParams::Ptr vio_params);
 
     virtual ~RosDataProvider();
 
@@ -71,7 +71,7 @@ private:
     // Parameters
     FrameId frame_count;
 
-    // Upstream references
+    // Upstream
     rclcpp::Node* nh;
     VioParams::Ptr vio_params;  // Also a shared pointer
 

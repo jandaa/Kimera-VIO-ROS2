@@ -14,12 +14,15 @@
 static const rclcpp::Duration kMaxTimeSecsForCamInfo(10.0);
 
 KimeraVIO::KimeraVIO(): 
-Node("KimeraVIO")
+rclcpp::Node("KimeraVIO")
 {   
     // Initalize data parameters
     std::string params_folder_path;
-    // this->vio_params = std::make_shared<VIO::VioParams>(params_folder_path);
-    // this->data_provider = std::make_unique<VIO::RosDataProvider>(this, this->vio_params);
+    this->vio_params = std::make_shared<VIO::VioParams>(params_folder_path);
+    this->data_provider = std::make_shared<VIO::RosDataProvider>(
+        reinterpret_cast<rclcpp::Node*>(this), 
+        this->vio_params
+    );
 
     // Create subscriptions (Takes topics from system environment variables)
     this->left_image_sub.subscribe(this, std::getenv("LEFT_IMAGE_TOPIC"));
@@ -96,12 +99,6 @@ void KimeraVIO::connect_vio()
             std::ref(*this->vio_pipeline),
             std::placeholders::_1
         )
-    );
-
-    std::bind(
-        &VIO::RosDataProvider::camera_callback, 
-        std::ref(this->data_provider),
-        std::placeholders::_1, std::placeholders::_2
     );
 
     this->data_provider->registerLeftFrameCallback(

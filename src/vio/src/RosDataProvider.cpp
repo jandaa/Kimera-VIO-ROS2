@@ -7,13 +7,11 @@
 
 namespace VIO {
 
-RosDataProvider::RosDataProvider() :
-DataProviderInterface()
-// nh(nh),
-// vio_params(vio_params)
+RosDataProvider::RosDataProvider(rclcpp::Node* nh, VioParams::Ptr vio_params) :
+DataProviderInterface(),
+nh(nh)
 {
-    nh = nullptr;
-    vio_params = nullptr;
+    vio_params = vio_params;
 }
 
 RosDataProvider::~RosDataProvider() 
