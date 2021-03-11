@@ -98,31 +98,29 @@ void RosDataProvider::camera_callback(
     frame_count++;
 }
 
-void RosDataProvider::reinit_callback()
+void RosDataProvider::reinit_callback(const std_msgs::msg::Bool::ConstSharedPtr reinit_flag)
 {
-    this->reinit_flag = true;
+    this->reinit_flag = reinit_flag->data;
 }
 
-void RosDataProvider::reinit_pose_callaback(const geometry_msgs::msg::PoseStamped& reinit_pose)
+void RosDataProvider::reinit_pose_callaback(const geometry_msgs::msg::PoseStamped::ConstSharedPtr reinit_pose)
 {
     gtsam::Rot3 rotation(
         gtsam::Quaternion(
-            reinit_pose.pose.orientation.w,
-            reinit_pose.pose.orientation.x,
-            reinit_pose.pose.orientation.y,
-            reinit_pose.pose.orientation.z
+            reinit_pose->pose.orientation.w,
+            reinit_pose->pose.orientation.x,
+            reinit_pose->pose.orientation.y,
+            reinit_pose->pose.orientation.z
         )
     );
     gtsam::Point3 position(
-        reinit_pose.pose.position.x,
-        reinit_pose.pose.position.y,
-        reinit_pose.pose.position.z
+        reinit_pose->pose.position.x,
+        reinit_pose->pose.position.y,
+        reinit_pose->pose.position.z
     );
 
     this->reinit_packet.setReinitPose(gtsam::Pose3(rotation, position));
 }
-
-
 
 const cv::Mat RosDataProvider::readRosImage(
     const sensor_msgs::msg::Image::ConstSharedPtr& img_msg

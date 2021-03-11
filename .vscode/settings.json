@@ -71,7 +71,8 @@
         "core": "cpp",
         "csignal": "cpp",
         "future": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "regex": "cpp"
     },
     // Autocomplete from ros python packages
     "python.autoComplete.extraPaths": [

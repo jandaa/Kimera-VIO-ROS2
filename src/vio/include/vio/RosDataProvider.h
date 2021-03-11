@@ -51,9 +51,9 @@ public:
         const std::string& child_frame_id
     );
 
-    void reinit_callback();
+    void reinit_callback(const std_msgs::msg::Bool::ConstSharedPtr reinit_flag);
 
-    void reinit_pose_callaback(const geometry_msgs::msg::PoseStamped& reinit_pose);
+    void reinit_pose_callaback(const geometry_msgs::msg::PoseStamped::ConstSharedPtr reinit_pose);
 
     // Utility functions
     const cv::Mat readRosImage(const sensor_msgs::msg::Image::ConstSharedPtr& img_msg) const;
