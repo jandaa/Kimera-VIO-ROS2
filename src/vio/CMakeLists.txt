@@ -16,6 +16,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(gflags_DIR "/usr/lib/x86_64-linux-gnu/cmake/gflags")
+# set(cv_bridge_DIR "/ws/vision_opencv/install/cv_bridge/share/cv_bridge/cmake")
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -27,11 +28,11 @@ find_package(message_filters REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(gflags REQUIRED)
 find_library(glog HINTS "/usr/lib/x86_64-linux-gnu")
+find_library(kimera_vio HINTS "/usr/local/lib")
 
-
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 3.3.1 REQUIRED)
 find_package(cv_bridge REQUIRED)
-find_package(kimera_vio REQUIRED)
+# find_package(kimera_vio REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 find_package(
@@ -55,11 +56,11 @@ endif()
 
 # build executable
 add_executable(${PROJECT_NAME}_node 
-  include/vio.h
+  include/vio/vio.h
   src/vio.cpp
-  include/RosUtils.h
+  include/vio/RosUtils.h
   src/RosUtils.cpp
-  include/RosDataProvider.h
+  include/vio/RosDataProvider.h
   src/RosDataProvider.cpp
   src/vio_node.cpp
 )
@@ -70,7 +71,6 @@ ament_target_dependencies(
     std_msgs
     sensor_msgs 
     geometry_msgs
-    kimera_vio
     OpenCV
     cv_bridge
     tf2_ros
@@ -82,6 +82,7 @@ target_link_libraries(${PROJECT_NAME}_node
   gtsam
   gflags
   glog
+  kimera_vio
 )
 
 target_include_directories(

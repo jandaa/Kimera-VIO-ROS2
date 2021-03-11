@@ -1,23 +1,24 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <kimera-vio/pipeline/Pipeline.h>
+#include <kimera-vio/frontend/CameraParams.h>
 
 #include "RosDataProvider.h"
 #include "RosUtils.h"
 
 namespace VIO {
 
-// RosDataProvider::RosDataProvider() :
-// DataProviderInterface()
-// // nh(nh),
-// // vio_params(vio_params)
-// {
-//     nh = nullptr;
-//     vio_params = nullptr;
-// }
+RosDataProvider::RosDataProvider() :
+DataProviderInterface()
+// nh(nh),
+// vio_params(vio_params)
+{
+    nh = nullptr;
+    vio_params = nullptr;
+}
 
-// RosDataProvider::~RosDataProvider() 
-// {
-// }
+RosDataProvider::~RosDataProvider() 
+{
+}
 
 bool RosDataProvider::spin() 
 {
@@ -47,8 +48,8 @@ void RosDataProvider::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr i
 }
 
 void RosDataProvider::camera_callback(
-    const sensor_msgs::msg::Image::ConstSharedPtr /*left_msg*/,
-    const sensor_msgs::msg::Image::ConstSharedPtr /*right_msg*/
+    const sensor_msgs::msg::Image::ConstSharedPtr left_msg,
+    const sensor_msgs::msg::Image::ConstSharedPtr right_msg
 ){
 
     // Make sure camera parameters exist for both cameras
@@ -71,28 +72,28 @@ void RosDataProvider::camera_callback(
         std::string("Did you forget to register the right frame callback?")
     );
 
-    // const CameraParams& left_cam_info = this->vio_params->camera_params_.at(0);
-    // const CameraParams& right_cam_info = this->vio_params->camera_params_.at(1);
+    const CameraParams& left_cam_info = this->vio_params->camera_params_.at(0);
+    const CameraParams& right_cam_info = this->vio_params->camera_params_.at(1);
 
-    // const Timestamp& timestamp_left = left_msg->header.stamp.sec;
-    // const Timestamp& timestamp_right = right_msg->header.stamp.sec;
+    const Timestamp& timestamp_left = left_msg->header.stamp.sec;
+    const Timestamp& timestamp_right = right_msg->header.stamp.sec;
 
-    // this->left_frame_callback_(
-    //     make_unique<Frame>(
-    //         frame_count, 
-    //         timestamp_left, 
-    //         left_cam_info, 
-    //         readRosImage(left_msg)
-    //     )
-    // );
-    // this->right_frame_callback_(
-    //     make_unique<Frame>(
-    //         frame_count,
-    //         timestamp_right,
-    //         right_cam_info,
-    //         readRosImage(right_msg)
-    //     )
-    // );
+    this->left_frame_callback_(
+        make_unique<Frame>(
+            frame_count, 
+            timestamp_left, 
+            left_cam_info, 
+            readRosImage(left_msg)
+        )
+    );
+    this->right_frame_callback_(
+        make_unique<Frame>(
+            frame_count,
+            timestamp_right,
+            right_cam_info,
+            readRosImage(right_msg)
+        )
+    );
 
     frame_count++;
 }

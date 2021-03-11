@@ -55,13 +55,13 @@ Node("KimeraVIO")
     );
     
     // Register callback functions
-    // this->sync_cameras->registerCallback(
-    //     std::bind(
-    //         &VIO::RosDataProvider::camera_callback, 
-    //         this->data_provider,
-    //         std::placeholders::_1, std::placeholders::_2
-    //     )
-    // );
+    this->sync_cameras->registerCallback(
+        std::bind(
+            &VIO::RosDataProvider::camera_callback, 
+            this->data_provider,
+            std::placeholders::_1, std::placeholders::_2
+        )
+    );
     this->sync_camera_params->registerCallback(
         std::bind(
             &KimeraVIO::camera_info_callback, 
@@ -104,22 +104,21 @@ void KimeraVIO::connect_vio()
         std::placeholders::_1, std::placeholders::_2
     );
 
-    // this->data_provider->registerLeftFrameCallback(
-    //     std::bind(
-    //         &VIO::Pipeline::fillLeftFrameQueue,
-    //         std::ref(*this->vio_pipeline),
-    //         std::placeholders::_1
-    //     )
-    // );
-    // VIO::utils::StatsCollectorImpl::AddSample
+    this->data_provider->registerLeftFrameCallback(
+        std::bind(
+            &VIO::Pipeline::fillLeftFrameQueue,
+            std::ref(*this->vio_pipeline),
+            std::placeholders::_1
+        )
+    );
 
-    // this->data_provider->registerRightFrameCallback(
-    //     std::bind(
-    //         &VIO::Pipeline::fillRightFrameQueue,
-    //         std::ref(*this->vio_pipeline),
-    //         std::placeholders::_1
-    //     )
-    // );
+    this->data_provider->registerRightFrameCallback(
+        std::bind(
+            &VIO::Pipeline::fillRightFrameQueue,
+            std::ref(*this->vio_pipeline),
+            std::placeholders::_1
+        )
+    );
 }
 
 void KimeraVIO::wait_for_camera_info()
@@ -143,8 +142,8 @@ void KimeraVIO::wait_for_camera_info()
 }
 
 void KimeraVIO::camera_info_callback(
-    const sensor_msgs::msg::CameraInfo::ConstSharedPtr /*left_msg*/,
-    const sensor_msgs::msg::CameraInfo::ConstSharedPtr /*right_msg*/
+    const sensor_msgs::msg::CameraInfo::ConstSharedPtr left_msg,
+    const sensor_msgs::msg::CameraInfo::ConstSharedPtr right_msg
 ){
     // // Initialize CameraParams for pipeline.
     // VIO::utils::msgCamInfoToCameraParams(

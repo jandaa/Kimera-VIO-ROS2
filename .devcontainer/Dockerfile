@@ -43,7 +43,7 @@ RUN apt-get update && apt-get install -y \
 ### Taken from Kimera-VIO docker container ###
 
 # Set the working directory to /root
-RUN mkdir /ws
+RUN mkdir /ws && chmod 777 /ws
 ENV DIRPATH /ws/
 WORKDIR $DIRPATH
 
@@ -70,7 +70,7 @@ RUN cd opencv && \
 RUN git clone https://github.com/opencv/opencv_contrib.git
 RUN cd opencv_contrib && \
     git checkout tags/3.3.1
-
+    
 RUN cd opencv/build && \
     cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
@@ -170,12 +170,34 @@ RUN cd Kimera-VIO && mkdir build && cd build && cmake .. && make -j$(nproc) inst
 
 # Install cv-bridge
 RUN apt-get update && apt-get install -y \
-    ros-${ROS_DISTRO}-cv-bridge \
+    # ros-${ROS_DISTRO}-cv-bridge \
     gdb
+
+# USER ros
+
+# Build cv-bridge
+RUN git clone https://github.com/ros-perception/vision_opencv.git && \
+    cd vision_opencv && \
+    git checkout ros2
+
+# WORKDIR /ws/vision_opencv
+# RUN /bin/bash -c "source /home/ros/.bashrc" && colcon build --symlink-install --packages-select cv_bridge
 
 ENV DEBIAN_FRONTEND=
 
-RUN mkdir -p /kimera
-WORKDIR /kimera
-USER ros
-CMD /bin/bash while :; do sleep 100; done
+# WORKDIR /
+# RUN mkdir -p /ws/repos/src
+# COPY ros_entrypoint.sh /
+# COPY kimera.repos /ws/repos/
+# RUN . /opt/ros/eloquent/setup.sh && \
+#     cd /ws/repos && \
+#     vcs import src < kimera.repos && \
+#     colcon build --merge-install
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]
+
+# # RUN mkdir -p /kimera
+# # WORKDIR /kimera
+# USER ros
+# CMD /bin/bash while :; do sleep 100; done
