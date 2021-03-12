@@ -1,4 +1,4 @@
-vio:
+KimeraVIO:
   ros__parameters:
 
     # Topics
@@ -11,3 +11,6 @@ vio:
     base_frame_id: "robot_with_sensor/leddartech/SensorBase"
     left_cam_frame_id: "robot_with_sensor/leddartech/SensorBase/left_camera"
     right_cam_frame_id: "robot_with_sensor/leddartech/SensorBase/right_camera"
+
+    # Parameters folder 
+    params_folder_path: "/workspaces/kimera-VIO-ROS2/src/vio/resources"

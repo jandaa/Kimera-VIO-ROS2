@@ -37,9 +37,13 @@ public:
 
     KimeraVIO();
 
+    void init();
+
 private:
 
     void connect_vio();
+
+    void declare_parameters();
 
 private:
 
