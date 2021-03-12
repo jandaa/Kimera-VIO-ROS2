@@ -1,0 +1,13 @@
+vio:
+  ros__parameters:
+
+    # Topics
+    left_image_topic: "left_camera"
+    right_image_topic: "right_camera"
+    camera_info_topic: "camera_info"
+    imu_topic: "imu"
+
+    # Frames
+    base_frame_id: "robot_with_sensor/leddartech/SensorBase"
+    left_cam_frame_id: "robot_with_sensor/leddartech/SensorBase/left_camera"
+    right_cam_frame_id: "robot_with_sensor/leddartech/SensorBase/right_camera"

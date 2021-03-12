@@ -16,15 +16,24 @@ nh(nh)
 {
     vio_params = vio_params;
 
-    // Create subscriptions (Takes topics from system environment variables)
-    this->left_image_sub.subscribe(this->nh, std::getenv("LEFT_IMAGE_TOPIC"));
-    this->right_image_sub.subscribe(this->nh, std::getenv("RIGHT_IMAGE_TOPIC"));
-    this->left_camera_info_sub.subscribe(this->nh, std::getenv("LEFT_CAMERA_INFO_TOPIC"));
-    this->right_camera_info_sub.subscribe(this->nh, std::getenv("RIGHT_CAMERA_INFO_TOPIC"));
+    // Create subscriptions
+    this->left_image_sub.subscribe(
+        this->nh, 
+        this->nh->get_parameter("left_image_topic").as_string()
+    );
+    this->right_image_sub.subscribe(
+        this->nh, 
+        this->nh->get_parameter("right_image_topic").as_string()
+    );
     this->imu_sub = this->nh->create_subscription<sensor_msgs::msg::Imu>(
-        std::getenv("IMU"),
+        this->nh->get_parameter("imu_topic").as_string(),
         10,
         std::bind(&RosDataProvider::imu_callback, this, std::placeholders::_1)
+    );
+    this->camera_info_sub = this->nh->create_subscription<sensor_msgs::msg::CameraInfo>(
+        this->nh->get_parameter("camera_info_topic").as_string(),
+        10,
+        std::bind(&RosDataProvider::camera_info_callback, this, std::placeholders::_1)
     );
     this->reint_flag_sub = this->nh->create_subscription<std_msgs::msg::Bool>(
         "reinit_flag",
@@ -43,11 +52,6 @@ nh(nh)
         this->left_image_sub, 
         this->right_image_sub
     );
-    this->sync_camera_params = std::make_unique<CameraInfoSynchronizer>(
-        CameraInfoSyncPolicy(10), 
-        this->left_camera_info_sub, 
-        this->right_camera_info_sub
-    );
     
     // Register callback functions
     this->sync_cameras->registerCallback(
@@ -57,17 +61,10 @@ nh(nh)
             std::placeholders::_1, std::placeholders::_2
         )
     );
-    this->sync_camera_params->registerCallback(
-        std::bind(
-            &RosDataProvider::camera_info_callback, 
-            this,
-            std::placeholders::_1, std::placeholders::_2
-        )
-    );
-
-    this->base_link_frame_id = std::getenv("BASE_LINK_FRAME_ID");
-    this->left_cam_frame_id = std::getenv("LEFT_CAM_FRAME_ID");
-    this->right_cam_frame_id = std::getenv("RIGHT_CAM_FRAME_ID");
+    
+    this->base_link_frame_id = this->nh->get_parameter("base_frame_id").as_string();
+    this->left_cam_frame_id = this->nh->get_parameter("left_cam_frame_id").as_string();
+    this->right_cam_frame_id = this->nh->get_parameter("right_cam_frame_id").as_string();
 
     // Wait for camera info to be received.
     this->wait_for_camera_info();
@@ -92,20 +89,17 @@ void RosDataProvider::wait_for_camera_info()
 {
     auto start = this->nh->now();
     auto current = this->nh->now();
-    while (!this->camera_info_received && (current - start) < kMaxTimeSecsForCamInfo) 
+    while (!this->camera_info_received() && (current - start) < kMaxTimeSecsForCamInfo) 
     {
         current = this->nh->now();
     }
 
     RCLCPP_FATAL_STREAM_EXPRESSION(
         this->nh->get_logger(),
-        !this->camera_info_received,
+        !this->camera_info_received(),
         "Missing camera info, while trying for " << (current - start).seconds()
         << " seconds.\n"
-        << "Expected camera info in topics:\n"
-        << " - Left cam info topic: " << this->left_camera_info_sub.getTopic()
-        << '\n'
-        << " - Right cam info topic: " << this->right_camera_info_sub.getTopic();
+        << "Expected camera info in topic: " << this->camera_info_sub->get_topic_name();
     );
 }
 
@@ -177,36 +171,43 @@ void RosDataProvider::camera_callback(
     frame_count++;
 }
 
-void RosDataProvider::camera_info_callback(
-    const sensor_msgs::msg::CameraInfo::ConstSharedPtr left_msg,
-    const sensor_msgs::msg::CameraInfo::ConstSharedPtr right_msg
-){
+void RosDataProvider::camera_info_callback(const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg)
+{   
+    // Find which camera the parameter is coming from
+    unsigned int cam_ind;
+    if (msg->header.frame_id == this->left_cam_frame_id)
+    {   
+        this->left_camera_info_received = true;
+        cam_ind = 0;
+    }
+    if (msg->header.frame_id == this->right_cam_frame_id)
+    {
+        this->right_camera_info_received = true;
+        cam_ind = 1;
+    }
+    else
+    {
+        return;
+    }
+    
     VIO::utils::msgCamInfoToCameraParams(
-        left_msg,
+        msg,
         this->base_link_frame_id,
-        this->left_cam_frame_id,
-        &this->vio_params->camera_params_.at(0)
-    );
-    VIO::utils::msgCamInfoToCameraParams(
-        right_msg,
-        this->base_link_frame_id,
-        this->right_cam_frame_id,
-        &this->vio_params->camera_params_.at(1)
+        msg->header.frame_id,
+        &this->vio_params->camera_params_.at(cam_ind)
     );
 
-    this->vio_params->camera_params_.at(0).print();
-    this->vio_params->camera_params_.at(1).print();
+    this->vio_params->camera_params_.at(cam_ind).print();
 
-    // Unregister this callback as it is no longer needed.
-    RCLCPP_INFO(
-        this->nh->get_logger(), 
-        "Unregistering CameraInfo subscribers as data has been received."
-    );
-    this->left_camera_info_sub.unsubscribe();
-    this->right_camera_info_sub.unsubscribe();
-
-    // Signal the correct reception of camera info
-    this->camera_info_received = true;
+    if (this->camera_info_received())
+    {
+        // Unregister this callback as it is no longer needed.
+        RCLCPP_INFO(
+            this->nh->get_logger(), 
+            "Unregistering CameraInfo subscribers as data has been received."
+        );
+        this->camera_info_sub.~__shared_ptr();
+    }
 }
 
 void RosDataProvider::reinit_callback(const std_msgs::msg::Bool::ConstSharedPtr reinit_flag)

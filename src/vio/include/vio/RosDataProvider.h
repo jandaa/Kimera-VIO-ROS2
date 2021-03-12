@@ -28,13 +28,9 @@
 using CameraSyncPolicy = message_filters::sync_policies::ApproximateTime<
     sensor_msgs::msg::Image, 
     sensor_msgs::msg::Image>;
-using CameraInfoSyncPolicy = message_filters::sync_policies::ApproximateTime<
-    sensor_msgs::msg::CameraInfo, 
-    sensor_msgs::msg::CameraInfo>;
 
 // Synchronizers
 using CameraSynchronizer = message_filters::Synchronizer<CameraSyncPolicy>;
-using CameraInfoSynchronizer = message_filters::Synchronizer<CameraInfoSyncPolicy>;
 
 namespace VIO
 {
@@ -64,10 +60,7 @@ public:
         const sensor_msgs::msg::Image::ConstSharedPtr right_msg
     );
 
-    void camera_info_callback(
-        const sensor_msgs::msg::CameraInfo::ConstSharedPtr left_msg,
-        const sensor_msgs::msg::CameraInfo::ConstSharedPtr right_msg
-    );
+    void camera_info_callback(const sensor_msgs::msg::CameraInfo::ConstSharedPtr msg);
 
     void publish_static_transforms(
         const gtsam::Pose3& pose,
@@ -90,6 +83,10 @@ private:
     // Resets the current status of reinitialization flag
     inline void resetReinitFlag() { this->reinit_packet.resetReinitFlag(); }
 
+    inline bool camera_info_received() { 
+        return this->left_camera_info_received && this->right_camera_info_received;
+    }
+
 private:
 
     // Upstream
@@ -99,15 +96,13 @@ private:
     // Subscriptions
     message_filters::Subscriber<sensor_msgs::msg::Image> left_image_sub;
     message_filters::Subscriber<sensor_msgs::msg::Image> right_image_sub;
-    message_filters::Subscriber<sensor_msgs::msg::CameraInfo> left_camera_info_sub;
-    message_filters::Subscriber<sensor_msgs::msg::CameraInfo> right_camera_info_sub;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub;
+    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub;
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr reint_flag_sub;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr reint_pose_sub;
 
     // Message Synchronization
     std::unique_ptr<CameraSynchronizer> sync_cameras;
-    std::unique_ptr<CameraInfoSynchronizer> sync_camera_params;
 
     // Parameters
     FrameId frame_count;
@@ -116,7 +111,8 @@ private:
     std::string right_cam_frame_id;
 
     // Flags
-    bool camera_info_received = false;
+    bool left_camera_info_received = false;
+    bool right_camera_info_received = false;
 
     // Misc
     bool reinit_flag = false;
