@@ -185,15 +185,6 @@ RUN git clone https://github.com/ros-perception/vision_opencv.git && \
 
 ENV DEBIAN_FRONTEND=
 
-# WORKDIR /
-# RUN mkdir -p /ws/repos/src
-# COPY ros_entrypoint.sh /
-# COPY kimera.repos /ws/repos/
-# RUN . /opt/ros/eloquent/setup.sh && \
-#     cd /ws/repos && \
-#     vcs import src < kimera.repos && \
-#     colcon build --merge-install
-
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
 

@@ -5,6 +5,9 @@
 #include "vio/RosDataProvider.h"
 #include "vio/RosUtils.h"
 
+// Constant Parameters
+static const rclcpp::Duration kMaxTimeSecsForCamInfo(10.0);
+
 namespace VIO {
 
 RosDataProvider::RosDataProvider(rclcpp::Node* nh, VioParams::Ptr vio_params) :
@@ -12,6 +15,63 @@ DataProviderInterface(),
 nh(nh)
 {
     vio_params = vio_params;
+
+    // Create subscriptions (Takes topics from system environment variables)
+    this->left_image_sub.subscribe(this->nh, std::getenv("LEFT_IMAGE_TOPIC"));
+    this->right_image_sub.subscribe(this->nh, std::getenv("RIGHT_IMAGE_TOPIC"));
+    this->left_camera_info_sub.subscribe(this->nh, std::getenv("LEFT_CAMERA_INFO_TOPIC"));
+    this->right_camera_info_sub.subscribe(this->nh, std::getenv("RIGHT_CAMERA_INFO_TOPIC"));
+    this->imu_sub = this->nh->create_subscription<sensor_msgs::msg::Imu>(
+        std::getenv("IMU"),
+        10,
+        std::bind(&RosDataProvider::imu_callback, this, std::placeholders::_1)
+    );
+    this->reint_flag_sub = this->nh->create_subscription<std_msgs::msg::Bool>(
+        "reinit_flag",
+        10,
+        std::bind(&RosDataProvider::reinit_callback, this, std::placeholders::_1)
+    );
+    this->reint_pose_sub = this->nh->create_subscription<geometry_msgs::msg::PoseStamped>(
+        "reinit_pose",
+        10,
+        std::bind(&RosDataProvider::reinit_pose_callaback, this, std::placeholders::_1)
+    );
+
+    // Initialize Synchronizers
+    this->sync_cameras = std::make_unique<CameraSynchronizer>(
+        CameraSyncPolicy(10), 
+        this->left_image_sub, 
+        this->right_image_sub
+    );
+    this->sync_camera_params = std::make_unique<CameraInfoSynchronizer>(
+        CameraInfoSyncPolicy(10), 
+        this->left_camera_info_sub, 
+        this->right_camera_info_sub
+    );
+    
+    // Register callback functions
+    this->sync_cameras->registerCallback(
+        std::bind(
+            &RosDataProvider::camera_callback, 
+            this,
+            std::placeholders::_1, std::placeholders::_2
+        )
+    );
+    this->sync_camera_params->registerCallback(
+        std::bind(
+            &RosDataProvider::camera_info_callback, 
+            this,
+            std::placeholders::_1, std::placeholders::_2
+        )
+    );
+
+    this->base_link_frame_id = std::getenv("BASE_LINK_FRAME_ID");
+    this->left_cam_frame_id = std::getenv("LEFT_CAM_FRAME_ID");
+    this->right_cam_frame_id = std::getenv("RIGHT_CAM_FRAME_ID");
+
+    // Wait for camera info to be received.
+    this->wait_for_camera_info();
+
 }
 
 RosDataProvider::~RosDataProvider() 
@@ -26,6 +86,27 @@ bool RosDataProvider::spin()
 void RosDataProvider::shutdown() 
 {
     return;
+}
+
+void RosDataProvider::wait_for_camera_info()
+{
+    auto start = this->nh->now();
+    auto current = this->nh->now();
+    while (!this->camera_info_received && (current - start) < kMaxTimeSecsForCamInfo) 
+    {
+        current = this->nh->now();
+    }
+
+    RCLCPP_FATAL_STREAM_EXPRESSION(
+        this->nh->get_logger(),
+        !this->camera_info_received,
+        "Missing camera info, while trying for " << (current - start).seconds()
+        << " seconds.\n"
+        << "Expected camera info in topics:\n"
+        << " - Left cam info topic: " << this->left_camera_info_sub.getTopic()
+        << '\n'
+        << " - Right cam info topic: " << this->right_camera_info_sub.getTopic();
+    );
 }
 
 void RosDataProvider::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr imu_msg) const
@@ -96,6 +177,38 @@ void RosDataProvider::camera_callback(
     frame_count++;
 }
 
+void RosDataProvider::camera_info_callback(
+    const sensor_msgs::msg::CameraInfo::ConstSharedPtr left_msg,
+    const sensor_msgs::msg::CameraInfo::ConstSharedPtr right_msg
+){
+    VIO::utils::msgCamInfoToCameraParams(
+        left_msg,
+        this->base_link_frame_id,
+        this->left_cam_frame_id,
+        &this->vio_params->camera_params_.at(0)
+    );
+    VIO::utils::msgCamInfoToCameraParams(
+        right_msg,
+        this->base_link_frame_id,
+        this->right_cam_frame_id,
+        &this->vio_params->camera_params_.at(1)
+    );
+
+    this->vio_params->camera_params_.at(0).print();
+    this->vio_params->camera_params_.at(1).print();
+
+    // Unregister this callback as it is no longer needed.
+    RCLCPP_INFO(
+        this->nh->get_logger(), 
+        "Unregistering CameraInfo subscribers as data has been received."
+    );
+    this->left_camera_info_sub.unsubscribe();
+    this->right_camera_info_sub.unsubscribe();
+
+    // Signal the correct reception of camera info
+    this->camera_info_received = true;
+}
+
 void RosDataProvider::reinit_callback(const std_msgs::msg::Bool::ConstSharedPtr reinit_flag)
 {
     this->reinit_flag = reinit_flag->data;
@@ -147,9 +260,6 @@ const cv::Mat RosDataProvider::readRosImage(
         cv::cvtColor(img_const, converted_img, cv::COLOR_RGB2GRAY);
         return converted_img;
     } else {
-        // CHECK_EQ(cv_ptr->encoding, sensor_msgs::image_encodings::MONO8)
-        //     << "Expected image with MONO8, BGR8, or RGB8 encoding."
-        //     "Add in here more conversions if you wish.";
         return img_const;
     }
 }
