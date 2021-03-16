@@ -2,9 +2,9 @@
 set -e
 
 # setup ros2 environment
-source "/opt/ros/$ROS_DISTRO/setup.bash"
-
-# setup cv_bridge
-source "/ws/vision_opencv/install/setup.bash"
+# source /usr/share/bash-completion/completions/git
+# source /opt/ros/${ROS_DISTRO}/setup.bash
+# source /usr/share/colcon_cd/function/colcon_cd.sh
+# source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
 
 exec "$@"

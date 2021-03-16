@@ -12,14 +12,13 @@
 	],
 	"containerEnv": { 
 		"DISPLAY": "${localEnv:DISPLAY}",
-		"LEFT_IMAGE_TOPIC": "left_cam/Image",
-		"RIGHT_IMAGE_TOPIC": "left_cam/Image",
-		"LEFT_CAMERA_INFO_TOPIC": "left_cam/CameraInfo",
-		"RIGHT_CAMERA_INFO_TOPIC": "left_cam/CameraInfo",
+		"LEFT_IMAGE_TOPIC": "left_camera",
+		"RIGHT_IMAGE_TOPIC": "right_camera",
+		"CAMERA_INFO_TOPIC": "camera_info",
 		"IMU_TOPIC": "Imu",
-		"BASE_LINK_FRAME_ID": "0",
-        "LEFT_CAM_FRAME_ID": "1",
-        "RIGHT_CAM_FRAME_ID": "2",
+		"BASE_LINK_FRAME_ID": "robot_with_sensor/leddartech/SensorBase",
+		"LEFT_CAM_FRAME_ID": "robot_with_sensor/leddartech/SensorBase/left_camera",
+		"RIGHT_CAM_FRAME_ID": "robot_with_sensor/leddartech/SensorBase/right_camera",
 	},
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash"

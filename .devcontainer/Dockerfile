@@ -11,84 +11,90 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && apt-get install -y sudo \
   && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
   && chmod 0440 /etc/sudoers.d/$USERNAME \
-  && rm -rf /var/lib/apt/lists/* \
-  && echo "source /usr/share/bash-completion/completions/git" >> /home/$USERNAME/.bashrc \
-  && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc
+  && rm -rf /var/lib/apt/lists/*
 
 ENV AMENT_PREFIX_PATH=/opt/ros/${ROS_DISTRO} \
     COLCON_PREFIX_PATH=/opt/ros/${ROS_DISTRO} \
-    LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib \
+    LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib:$LD_LIBRARY_PATH \
     PATH=/opt/ros/${ROS_DISTRO}/bin:$PATH \
     PYTHONPATH=/opt/ros/${ROS_DISTRO}/lib/python3.8/site-packages \
+    # PYTHONPATH=/opt/ros/${ROS_DISTRO}/lib/python3.8/site-packages:$PYTHONPATH \
     ROS_PYTHON_VERSION=3 \
     ROS_VERSION=2 \
+    DIRPATH=/usr/local/src \
     DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get upgrade && apt-get update && apt-get install -y \
     bash-completion \
-    build-essential \
+    xvfb \
+    unzip \
+    ssh \
     gdb \
-    git \
     curl \
+    cmake \
+    apt-utils \
+    pkg-config \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libvtk6-dev \
+    libgtk-3-dev \
+    libatlas-base-dev \
+    software-properties-common \
+    gfortran \
     pylint3 \
     python3-argcomplete \
     python3-colcon-common-extensions \
     python3-pip \
-    python3-rosdep \
-    python3-vcstool \
-    python3-autopep8 \
-    && rm -rf /var/lib/apt/lists/* \
-    && rosdep init || echo "rosdep already initialized"
+    # python3-autopep8 \
+    && rm -rf /var/lib/apt/lists/*
 
-### Taken from Kimera-VIO docker container ###
+# Add credentials on build and 
+# Make sure your domain is accepted
+ARG SSH_PRIVATE_KEY
+RUN mkdir /root/.ssh/ && \
+    echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa && \
+    chmod 600 ~/.ssh/id_rsa && \
+    touch /root/.ssh/known_hosts && \
+    ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
 
-# Set the working directory to /root
-RUN mkdir /ws && chmod 777 /ws
-ENV DIRPATH /ws/
-WORKDIR $DIRPATH
-
-#Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
-RUN apt-get update && apt-get install -y git cmake build-essential pkg-config
-
-# Install xvfb to provide a display to container for GUI realted testing.
-RUN apt-get update && apt-get install -y xvfb
-
-# Install OpenCV for Ubuntu 18.04
+# Install glog, gflags
 RUN apt-get update && apt-get install -y \
-    unzip \
-    libjpeg-dev libpng-dev libtiff-dev \
-    libvtk6-dev \
-    libgtk-3-dev \
-    libatlas-base-dev gfortran
+    libgflags2.2 \
+    libgflags-dev \
+    libgoogle-glog0v5 \
+    libgoogle-glog-dev
 
-RUN git clone https://github.com/opencv/opencv.git
-RUN cd opencv && \
-    git checkout tags/3.3.1 && \
-    mkdir build
+# Get python3
+# TODO: Is this necessary?
+RUN apt-get update && add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update && apt-get install -y \
+    python3.5 \
+    python3.5-dev \
+    python-pip \
+    python3-pip \
+    python-tk \
+    python3-tk
+RUN python3.5 -m pip install PyQt5==5.14
 
-RUN git clone https://github.com/opencv/opencv_contrib.git
-RUN cd opencv_contrib && \
-    git checkout tags/3.3.1
-    
-RUN cd opencv/build && \
+# Set the working directory and clone repos
+WORKDIR $DIRPATH
+COPY kimera.repos .
+RUN vcs import < kimera.repos
+
+# Build & Intsall OpenCV
+RUN mkdir -p opencv/build && cd opencv/build && \
     cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
     -D BUILD_opencv_python=OFF \
     -D BUILD_opencv_python2=OFF \
     -D BUILD_opencv_python3=OFF \
     -DOPENCV_EXTRA_MODULES_PATH=$DIRPATH/opencv_contrib/modules .. && \
-    make -j$(nproc) install
+    make -j $(nproc) install
 
-# Install GTSAM
+# Build & Intsall GTSAM
 RUN apt-get update && apt-get install -y libboost-all-dev libtbb-dev
-ADD https://api.github.com/repos/borglab/gtsam/git/refs/heads/master version.json
-RUN git clone https://github.com/borglab/gtsam.git
-RUN cd gtsam && \
-    git checkout ee069286b447ff58b809423cc77c777a02abdfe5 && \
-    git fetch && \
-    mkdir build && \
-    cd build && \
+RUN mkdir -p gtsam/build && cd gtsam/build && \
     cmake   -DCMAKE_INSTALL_PREFIX=/usr/local \
             -DGTSAM_USE_SYSTEM_EIGEN=OFF \
             -DGTSAM_BUILD_TESTS=OFF \
@@ -98,97 +104,55 @@ RUN cd gtsam && \
             -DGTSAM_POSE3_EXPMAP=ON \
             -DGTSAM_ROT3_EXPMAP=ON \
             -DGTSAM_TANGENT_PREINTEGRATION=OFF .. && \
-    make -j$(nproc) install
+    make -j $(nproc) install
 
-# Install Open_GV
-RUN git clone https://github.com/laurentkneip/opengv
-RUN cd opengv && mkdir build
-RUN cd opengv/build && \
+# Build & Intsall OpenGV
+RUN mkdir -p opengv/build && cd opengv/build && \
     cmake -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DEIGEN_INCLUDE_DIRS=$DIRPATH/gtsam/gtsam/3rdparty/Eigen \
     -DEIGEN_INCLUDE_DIR=$DIRPATH/gtsam/gtsam/3rdparty/Eigen .. && \
-    make -j$(nproc) install
+    make -j $(nproc) install
 
-# Install DBoW2
-RUN git clone https://github.com/dorian3d/DBoW2.git
-RUN cd DBoW2 && \
-    mkdir build && \
-    cd build && \
+# Build & Intsall DBoW2
+RUN mkdir -p DBoW2/build && cd DBoW2/build && \
     cmake .. && \
     make -j $(nproc) install
 
-# Install RobustPGO
-ADD https://api.github.com/repos/MIT-SPARK/Kimera-RPGO/git/refs/heads/master version.json
-RUN git clone https://github.com/MIT-SPARK/Kimera-RPGO.git
-RUN cd Kimera-RPGO && \
-    mkdir build && \
-    cd build && \
+# Build & Intsall Kimera-RPGO
+RUN mkdir -p Kimera-RPGO/build && cd Kimera-RPGO/build && \
     cmake .. && \
     make -j $(nproc) install
 
-RUN apt-get update && \
-    apt-get install software-properties-common -y
+# Build & Intsall evo-1 for evaluations
+RUN cd evo-1 && git checkout master && python3.5 $(which pip3) install .
 
-# Get python3
-RUN apt-get update && \
-    add-apt-repository ppa:deadsnakes/ppa
-RUN apt-get update && \
-    apt-get install -y python3.5 python3.5-dev python-pip python3-pip python-tk python3-tk
-RUN python3.5 -m pip install PyQt5==5.14
-
-# Install evo-1 for evaluation
-# Hack to avoid Docker's cache when evo-1 master branch is updated.
-ADD https://api.github.com/repos/ToniRV/evo-1/git/refs/heads/master version.json
-RUN git clone https://github.com/ToniRV/evo-1.git
-RUN cd evo-1 && python3.5 $(which pip3) install .
-
-# Install spark_vio_evaluation
 RUN python3.5 $(which pip3) install ipython prompt_toolkit
-# Hack to avoid Docker's cache when spark_vio_evaluation master branch is updated.
-ADD https://api.github.com/repos/ToniRV/Kimera-VIO-Evaluation/git/refs/heads/master version.json
-RUN git clone https://github.com/ToniRV/Kimera-VIO-Evaluation.git
-# We use `pip3 install -e .` so that Jinja2 has access to the webiste template...
-RUN cd Kimera-VIO-Evaluation && python3.5 $(which pip3) install -e .
 
-# Add credentials on build
-ARG SSH_PRIVATE_KEY
-RUN mkdir /root/.ssh/ && sudo apt-get install -y ssh
-RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa
-RUN chmod 600 ~/.ssh/id_rsa
+# Build & Intsall Kimera-VIO-Evaluation for evaluations
+RUN cd Kimera-VIO-Evaluation && git checkout master && python3.5 $(which pip3) install -e .
 
-# Make sure your domain is accepted
-RUN touch /root/.ssh/known_hosts
-RUN ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
+# Build & Intsall Kimera-VIO
+RUN mkdir -p Kimera-VIO/build && cd Kimera-VIO/build && \
+    cmake .. && \
+    make -j $(nproc) install
 
-# Install glog, gflags
-RUN apt-get update && apt-get install -y libgflags2.2 libgflags-dev libgoogle-glog0v5 libgoogle-glog-dev
+# Add to bash profile
+RUN echo \
+"source /usr/share/bash-completion/completions/git \n\
+source /opt/ros/${ROS_DISTRO}/setup.bash \n\
+source /usr/share/colcon_cd/function/colcon_cd.sh \n\
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash"\
+>> /home/$USERNAME/.bashrc
 
-# Install Kimera-VIO
-RUN git clone https://github.com/MIT-SPARK/Kimera-VIO.git
-RUN cd Kimera-VIO && mkdir build && cd build && cmake .. && make -j$(nproc) install
-
-# Install cv-bridge
-RUN apt-get update && apt-get install -y \
-    # ros-${ROS_DISTRO}-cv-bridge \
-    gdb
-
-# USER ros
-
-# Build cv-bridge
-RUN git clone https://github.com/ros-perception/vision_opencv.git && \
-    cd vision_opencv && \
-    git checkout ros2
-
-# WORKDIR /ws/vision_opencv
-# RUN /bin/bash -c "source /home/ros/.bashrc" && colcon build --symlink-install --packages-select cv_bridge
+# Add colcon underlay and any required dependencies
+RUN mkdir -p /underlay/src 
+WORKDIR /underlay
+COPY underlay.* ./
+RUN /bin/bash underlay.sh
 
 ENV DEBIAN_FRONTEND=
-
+COPY ros_entrypoint.sh /
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
-
-# # RUN mkdir -p /kimera
-# # WORKDIR /kimera
-# USER ros
-# CMD /bin/bash while :; do sleep 100; done
+USER ros

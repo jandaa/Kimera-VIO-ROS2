@@ -1,0 +1,37 @@
+repositories:
+  opencv:
+    type: git
+    url: https://github.com/opencv/opencv.git
+    version: tags/3.3.1
+  opencv_contrib:
+    type: git
+    url: https://github.com/opencv/opencv_contrib.git
+    version: tags/3.3.1
+  gtsam:
+    type: git
+    url: https://github.com/borglab/gtsam.git
+    version: ee069286b447ff58b809423cc77c777a02abdfe5
+  opengv:
+    type: git
+    url: https://github.com/laurentkneip/opengv
+    version: 91f4b19c73450833a40e463ad3648aae80b3a7f3
+  DBoW2:
+    type: git
+    url: https://github.com/dorian3d/DBoW2.git
+    version: tags/v1.1-free
+  Kimera-RPGO:
+    type: git
+    url: https://github.com/MIT-SPARK/Kimera-RPGO.git
+    version: tags/dec-2020
+  Kimera-VIO:
+    type: git
+    url: https://github.com/MIT-SPARK/Kimera-VIO.git
+    version: 9cc967e1ad5fad49b135b22813c033923737d46c
+  evo-1:
+    type: git
+    url: https://github.com/ToniRV/evo-1.git
+    version: 6a85b3788eb7571575d213a0267a6b0452d7e74b
+  Kimera-VIO-Evaluation:
+    type: git
+    url: https://github.com/ToniRV/Kimera-VIO-Evaluation.git
+    version: 1695e14ef030b2f90875facd7ce7b9335882e0eb
