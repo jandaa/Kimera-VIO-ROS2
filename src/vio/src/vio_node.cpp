@@ -13,7 +13,7 @@ int main(int argc, char * argv[])
 
   // Create node and initialize
   auto node = std::make_shared<KimeraVIO>();
-  node->init();
+  // node->init();
 
   rclcpp::spin(node);
   rclcpp::shutdown();

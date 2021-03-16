@@ -13,11 +13,6 @@
 KimeraVIO::KimeraVIO(): 
 Node("KimeraVIO")
 {   
-    this->declare_parameters();
-}
-
-void KimeraVIO::init()
-{
     // Initalize data parameters
     this->vio_params = std::make_shared<VIO::VioParams>("");
     this->data_provider = std::make_shared<VIO::RosDataProvider>(
@@ -25,20 +20,6 @@ void KimeraVIO::init()
         this->vio_params
     );
     this->connect_vio();
-}
-
-void KimeraVIO::declare_parameters()
-{
-    this->declare_parameter("left_image_topic");
-    this->declare_parameter("right_image_topic");
-    this->declare_parameter("camera_info_topic");
-    this->declare_parameter("imu_topic");
-
-    this->declare_parameter("base_frame_id");
-    this->declare_parameter("left_cam_frame_id");
-    this->declare_parameter("right_cam_frame_id");
-
-    this->declare_parameter("params_folder_path");
 }
 
 void KimeraVIO::connect_vio()

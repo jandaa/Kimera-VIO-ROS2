@@ -19,19 +19,19 @@ nh(nh)
     // Create subscriptions
     this->left_image_sub.subscribe(
         this->nh, 
-        this->nh->get_parameter("left_image_topic").as_string()
+        std::getenv("LEFT_IMAGE_TOPIC")
     );
     this->right_image_sub.subscribe(
         this->nh, 
-        this->nh->get_parameter("right_image_topic").as_string()
+        std::getenv("RIGHT_IMAGE_TOPIC")
     );
     this->imu_sub = this->nh->create_subscription<sensor_msgs::msg::Imu>(
-        this->nh->get_parameter("imu_topic").as_string(),
+        std::getenv("IMU_TOPIC"),
         10,
         std::bind(&RosDataProvider::imu_callback, this, std::placeholders::_1)
     );
     this->camera_info_sub = this->nh->create_subscription<sensor_msgs::msg::CameraInfo>(
-        this->nh->get_parameter("camera_info_topic").as_string(),
+        std::getenv("CAMERA_INFO_TOPIC"),
         10,
         std::bind(&RosDataProvider::camera_info_callback, this, std::placeholders::_1)
     );
@@ -62,9 +62,9 @@ nh(nh)
         )
     );
     
-    this->base_link_frame_id = this->nh->get_parameter("base_frame_id").as_string();
-    this->left_cam_frame_id = this->nh->get_parameter("left_cam_frame_id").as_string();
-    this->right_cam_frame_id = this->nh->get_parameter("right_cam_frame_id").as_string();
+    this->base_link_frame_id = std::getenv("BASE_FRAME_ID");
+    this->left_cam_frame_id = std::getenv("LEFT_CAM_FRAME_ID");
+    this->right_cam_frame_id = std::getenv("RIGHT_CAM_FRAME_ID");
 
     // Wait for camera info to be received.
     this->wait_for_camera_info();
