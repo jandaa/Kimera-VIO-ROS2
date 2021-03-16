@@ -2,6 +2,7 @@ devel/
 log/
 build/
 install/
+bags/
 bin/
 lib/
 msg_gen/
