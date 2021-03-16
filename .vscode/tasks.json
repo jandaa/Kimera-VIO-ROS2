@@ -7,7 +7,7 @@
             "label": "build",
             "detail": "Build workspace (default)",
             "type": "shell",
-            "command": "colcon build --symlink-install --cmake-args '-DCMAKE_BUILD_TYPE=Debug' ",
+            "command": "colcon build --merge-install --symlink-install --cmake-args '-DCMAKE_BUILD_TYPE=RelWithDebInfo' ",
             "group": {
                 "kind": "build",
                 "isDefault": true

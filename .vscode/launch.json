@@ -35,7 +35,7 @@
       "name": "VIO Node",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/install/vio/lib/vio/vio_node",
+      "program": "${workspaceFolder}/install/lib/vio/vio_node",
       "args": [],
       "preLaunchTask": "build",
       "stopAtEntry": true,
