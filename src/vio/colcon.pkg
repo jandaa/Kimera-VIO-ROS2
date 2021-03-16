@@ -1,0 +1,9 @@
+{
+    "build": {
+        "symlink-install": true,
+        "merge-install": true
+    },
+    "hooks": [
+        "/underlay/install/setup.sh"
+    ]
+}
