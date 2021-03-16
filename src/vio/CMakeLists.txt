@@ -107,9 +107,11 @@ install(
   DESTINATION include
 )
 
-install(
-  DIRECTORY resources/
-  DESTINATION resources
-)
+# install(
+#   DIRECTORY resources/
+#   DESTINATION resources
+# )
+
+# add_compile_options(-g)
 
 ament_package()
