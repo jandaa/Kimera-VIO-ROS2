@@ -18,7 +18,7 @@ ENV AMENT_PREFIX_PATH=/opt/ros/${ROS_DISTRO} \
     LD_LIBRARY_PATH=/opt/ros/${ROS_DISTRO}/lib:$LD_LIBRARY_PATH \
     PATH=/opt/ros/${ROS_DISTRO}/bin:$PATH \
     PYTHONPATH=/opt/ros/${ROS_DISTRO}/lib/python3.8/site-packages \
-    # PYTHONPATH=/opt/ros/${ROS_DISTRO}/lib/python3.8/site-packages:$PYTHONPATH \
+    PYTHONPATH=/opt/ros/${ROS_DISTRO}/lib/python3.8/site-packages:$PYTHONPATH \
     ROS_PYTHON_VERSION=3 \
     ROS_VERSION=2 \
     DIRPATH=/usr/local/src \
@@ -46,36 +46,14 @@ RUN apt-get upgrade && apt-get update && apt-get install -y \
     python3-argcomplete \
     python3-colcon-common-extensions \
     python3-pip \
-    # python3-autopep8 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Add credentials on build and 
-# Make sure your domain is accepted
-ARG SSH_PRIVATE_KEY
-RUN mkdir /root/.ssh/ && \
-    echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa && \
-    chmod 600 ~/.ssh/id_rsa && \
-    touch /root/.ssh/known_hosts && \
-    ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
-
-# Install glog, gflags
-RUN apt-get update && apt-get install -y \
     libgflags2.2 \
     libgflags-dev \
     libgoogle-glog0v5 \
-    libgoogle-glog-dev
-
-# Get python3
-# TODO: Is this necessary?
-RUN apt-get update && add-apt-repository ppa:deadsnakes/ppa
-RUN apt-get update && apt-get install -y \
-    python3.5 \
-    python3.5-dev \
-    python-pip \
-    python3-pip \
-    python-tk \
-    python3-tk
-RUN python3.5 -m pip install PyQt5==5.14
+    libgoogle-glog-dev \
+    libboost-all-dev \
+    libtbb-dev \
+    # python3-autopep8 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory and clone repos
 WORKDIR $DIRPATH
@@ -93,7 +71,6 @@ RUN mkdir -p opencv/build && cd opencv/build && \
     make -j $(nproc) install
 
 # Build & Intsall GTSAM
-RUN apt-get update && apt-get install -y libboost-all-dev libtbb-dev
 RUN mkdir -p gtsam/build && cd gtsam/build && \
     cmake   -DCMAKE_INSTALL_PREFIX=/usr/local \
             -DGTSAM_USE_SYSTEM_EIGEN=OFF \
