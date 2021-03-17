@@ -124,18 +124,11 @@ RUN mkdir -p Kimera-RPGO/build && cd Kimera-RPGO/build && \
     cmake .. && \
     make -j $(nproc) install
 
-# Build & Intsall evo-1 for evaluations
-RUN cd evo-1 && git checkout master && python3.5 $(which pip3) install .
-
-RUN python3.5 $(which pip3) install ipython prompt_toolkit
-
-# Build & Intsall Kimera-VIO-Evaluation for evaluations
-RUN cd Kimera-VIO-Evaluation && git checkout master && python3.5 $(which pip3) install -e .
-
-# Build & Intsall Kimera-VIO
+# Build & Install Kimera-VIO
 RUN mkdir -p Kimera-VIO/build && cd Kimera-VIO/build && \
-    cmake .. && \
-    make -j $(nproc) install
+    sed -i '162,165 s/^/#/' ../CMakeLists.txt && \
+    cmake -DKIMERA_BUILD_TESTS=OFF -DCMAKE_CXX_STANDARD=11 .. && \
+    make -j $(nproc) install 
 
 # Add to bash profile
 RUN echo \

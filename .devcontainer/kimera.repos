@@ -27,11 +27,3 @@ repositories:
     type: git
     url: https://github.com/MIT-SPARK/Kimera-VIO.git
     version: 9cc967e1ad5fad49b135b22813c033923737d46c
-  evo-1:
-    type: git
-    url: https://github.com/ToniRV/evo-1.git
-    version: 6a85b3788eb7571575d213a0267a6b0452d7e74b
-  Kimera-VIO-Evaluation:
-    type: git
-    url: https://github.com/ToniRV/Kimera-VIO-Evaluation.git
-    version: 1695e14ef030b2f90875facd7ce7b9335882e0eb
