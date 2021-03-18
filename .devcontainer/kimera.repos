@@ -18,11 +18,11 @@ repositories:
   DBoW2:
     type: git
     url: https://github.com/dorian3d/DBoW2.git
-    version: tags/v1.1-free
+    version: 3924753db6145f12618e7de09b7e6b258db93c6e
   Kimera-RPGO:
     type: git
     url: https://github.com/MIT-SPARK/Kimera-RPGO.git
-    version: tags/dec-2020
+    version: 3003ed918f11c3f45ccc98e8726839c5f6fc8b9f
   Kimera-VIO:
     type: git
     url: https://github.com/MIT-SPARK/Kimera-VIO.git

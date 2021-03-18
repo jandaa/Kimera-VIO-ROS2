@@ -103,8 +103,7 @@ RUN mkdir -p Kimera-RPGO/build && cd Kimera-RPGO/build && \
 
 # Build & Install Kimera-VIO
 RUN mkdir -p Kimera-VIO/build && cd Kimera-VIO/build && \
-    sed -i '162,165 s/^/#/' ../CMakeLists.txt && \
-    cmake -DKIMERA_BUILD_TESTS=OFF -DCMAKE_CXX_STANDARD=11 .. && \
+    cmake -DKIMERA_BUILD_TESTS=OFF .. && \
     make -j $(nproc) install 
 
 # Add to bash profile
@@ -112,19 +111,17 @@ RUN echo \
 "source /usr/share/bash-completion/completions/git \n\
 source /opt/ros/${ROS_DISTRO}/setup.bash \n\
 source /usr/share/colcon_cd/function/colcon_cd.sh \n\
-source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash"\
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash \n\
+source /underlay/install/setup.sh"\
 >> /home/$USERNAME/.bashrc
 
 # Add colcon underlay and any required dependencies
 RUN mkdir -p /underlay/src 
 WORKDIR /underlay
-COPY underlay.* ./
+COPY underlay.repos .
 RUN vcs import ./src < underlay.repos && \
-    . /opt/ros/$ROS_DISTRO/setup.sh \
+    . /opt/ros/$ROS_DISTRO/setup.sh && \
     colcon build --merge-install --packages-select cv_bridge
     
 ENV DEBIAN_FRONTEND=
-COPY ros_entrypoint.sh /
-ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["bash"]
 USER ros
