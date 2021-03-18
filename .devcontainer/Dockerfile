@@ -119,8 +119,10 @@ source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash"\
 RUN mkdir -p /underlay/src 
 WORKDIR /underlay
 COPY underlay.* ./
-RUN /bin/bash underlay.sh
-
+RUN vcs import ./src < underlay.repos && \
+    . /opt/ros/$ROS_DISTRO/setup.sh \
+    colcon build --merge-install --packages-select cv_bridge
+    
 ENV DEBIAN_FRONTEND=
 COPY ros_entrypoint.sh /
 ENTRYPOINT ["/ros_entrypoint.sh"]
